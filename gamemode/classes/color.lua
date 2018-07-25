@@ -229,7 +229,20 @@ function Color:GetLightness()
     return self._cache.lightness
 end
 
+function Color:GetLuminance()
+    if (not self._cache.scales) then
+        self:GetScales()
+    end
+
+    local scales = self._cache.scales
+    self._cache.luminance = scales.r * LUM_RED + scales.g * LUM_GREEN + scales.b
+        * LUM_BLUE
+    return self._cache.luminance
+end
+
 function Color:GetColorInformation()
+    debug.Print("Color information")
+    MsgC(self, "██: "..tostring(self).."\n")
     debug.Print("Red Channel  ", self.r)
     debug.Print("Green Channel", self.g)
     debug.Print("Blue Channel ", self.b)
@@ -254,6 +267,9 @@ function Color:GetColorInformation()
 
     local lightness = self._cache.lightness
     debug.Print("Lightness    ", lightness)
+
+    local luminance = self:GetLuminance()
+    debug.Print("Luminance    ", luminance)
 end
 
 function Color:ClearCache()
