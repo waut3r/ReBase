@@ -287,6 +287,18 @@ function Color:GetLuminance()
 end
 
 --
+-- Description: Calculates and caches inverse of color without changing rgb values
+--
+function Color:GetInvert()
+    local rInvert, gInvert, bInvert
+    rInvert = 255 - self.r
+    gInvert = 255 - self.g
+    bInvert = 255 - self.b
+    self._cache.invert = {r = rInvert, g = gInvert, b = bInvert}
+    return self._cache.invert
+end
+
+--
 -- Descrption: Modifies RGB components to match HSL
 -- Arguments:
 --      number: hue (does not need to be within 0-360 degree range)
@@ -435,6 +447,43 @@ function Color:PrintColorInformation()
 
     local luminance = self:GetLuminance()
     debug.Print("Luminance    ", luminance)
+end
+
+--
+-- Description: Blends self and another color using linear interpolation
+--
+function Color:Blend(frac, to)
+    if (frac == 0) then return end
+    if (self.r == to.r and self.g == to.g and self.b == to.b) then return end
+    self.r = Lerp(frac, self.r, to.r)
+    self.g = Lerp(frac, self.g, to.g)
+    self.b = Lerp(frac, self.b, to.b)
+    self:ClearCache()
+end
+
+--
+-- Description: Blends two colors using linear interpolation
+--
+function Color.Lerp(frac, from, to)
+    if (frac == 0) then return end
+    if (from.r == to.r and from.g == to.g and from.b == to.b) then return end
+
+    local r, g, b
+    r = Lerp(frac, from.r, to.r)
+    g = Lerp(frac, from.g, to.g)
+    b = Lerp(frac, from.b, to.b)
+
+    return Color(r, g, b)
+end
+
+--
+-- Description: Inverts color 
+--
+function Color:Invert()
+    self.r = 255 - self.r
+    self.g = 255 - self.g
+    self.b = 255 - self.b
+    self:ClearCache()
 end
 
 --
