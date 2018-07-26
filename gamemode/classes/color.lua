@@ -9,8 +9,8 @@ Color.__index = Color
 --
 -- Description: Creates color instance
 -- Arguments:
---      varargs: ... -  Can be a string representing #RGB/#RGBA/#RRGGBB/#RRGGBBAA format,
---                      a table with rgba keys, or RGBA arguments.
+--      varargs: ... (Can be a string representing #RGB/#RGBA/#RRGGBB/#RRGGBBAA format,
+--                   a table with rgba keys, or RGBA arguments.)
 -- Returns:
 --      Color: color
 --
