@@ -161,6 +161,9 @@ end
 --      table: scaled rgb table
 --
 function Color:GetScales()
+    if (not self._cache) then
+        self._cache = {}
+    end
     self._cache.scales = {}
     self._cache.scales.r = self.r / 255
     self._cache.scales.g = self.g / 255
@@ -174,8 +177,8 @@ end
 --      numbers: scaled min and max
 --
 function Color:GetMinMax()
-    if (not self._cache.scales) then
-        Color:GetScales()
+    if (not self._cache or not self._cache.scales) then
+        self:GetScales()
     end
 
     self._cache.min, self._cache.max = math.GetMinMax(self._cache.scales)
@@ -188,7 +191,7 @@ end
 --      number: scaled chroma
 --
 function Color:GetChroma()
-    if (not self._cache.min or not self._cache.max) then
+    if (not self._cache or not self._cache.min or not self._cache.max) then
         self:GetMinMax()
     end
     self._cache.chroma = self._cache.max - self._cache.min
@@ -201,11 +204,11 @@ end
 --      number: hue in degrees
 --
 function Color:GetHue()
-    if (not self._cache.max) then
+    if (not self._cache or not self._cache.max) then
         self:GetMinMax()
     end
 
-    if (not self._cache.chroma) then
+    if (not self._cache or not self._cache.chroma) then
         self:GetChroma()
     end
 
@@ -235,10 +238,10 @@ end
 --      number: scaled saturation
 --
 function Color:GetSaturation()
-    if (not self._cache.chroma) then
+    if (not self._cache or not self._cache.chroma) then
         self:GetChroma()
     end
-    if (not self._cache.lightness) then
+    if (not self._cache or not self._cache.lightness) then
         self:GetLightness()
     end
 
@@ -260,7 +263,7 @@ end
 --      number: scaled lightness
 --
 function Color:GetLightness()
-    if (not self._cache.max or not self._cache.min) then
+    if (not self._cache or not self._cache.max or not self._cache.min) then
         self:GetMinMax()
     end
     self._cache.lightness = (self._cache.max + self._cache.min) / 2
@@ -273,7 +276,7 @@ end
 --      number: scaled luminance
 --
 function Color:GetLuminance()
-    if (not self._cache.scales) then
+    if (not self._cache or not self._cache.scales) then
         self:GetScales()
     end
 
@@ -284,13 +287,12 @@ function Color:GetLuminance()
 end
 
 --
--- Descrption: Modifies RGB components to match hue and caches resulting hue
+-- Descrption: Modifies RGB components to match HSL
 -- Arguments:
 --      number: hue (does not need to be within 0-360 degree range)
---
-function Color:SetHue(hue)
-    print(hue)
-
+--      number: saturation (scaled from 0-1)
+--      number: lightness (scaled from 0-1)
+function Color:SetHsl(hue, saturation, lightness)
     while (hue > 360) do
         hue = hue - 360
     end
@@ -299,38 +301,21 @@ function Color:SetHue(hue)
         hue = hue + 360
     end
 
-    print(hue)
-
-    if (not self._cache.saturation) then
-        self:GetSaturation()
-    end
-    if (not self._cache.chroma) then
-        self:GetChroma()
-    end
-    if (not self._cache.lightness) then
-        self:GetLightness()
-    end
-
-    local s = self._cache.saturation
-    local c = self._cache.chroma
-    local l = self._cache.lightness
-
-    if (s == 0) then return end
-
-    local x = c * (1 - math.abs((hue / 60) % 2 - 1))
+    local chroma  = (1 - math.abs(2 * lightness - 1)) * saturation
+    local x = chroma * (1 - math.abs((hue / 60) % 2 - 1))
     local r, g, b
 
     if (hue >= 0 and hue <= 60) then
-        r = c
+        r = chroma
         g = x
         b = 0
     elseif (hue > 60 and hue <= 120) then
-        r = c
+        r = chroma
         g = x
         b = 0
     elseif (hue > 120 and hue <= 180) then
         r = 0
-        g = c
+        g = chroma
         b = x
     elseif (hue > 180 and hue <= 240) then
         r = 0
@@ -339,20 +324,68 @@ function Color:SetHue(hue)
     elseif (hue > 240 and hue <= 300) then
         r = x
         g = 0
-        b = c
+        b = chroma
     elseif (hue > 300 and hue <= 360) then
-        r = c
+        r = chroma
         g = 0
         b = x
     end
 
-    local m = l - (.5 * c)
+    local m = lightness - (.5 * chroma)
     self.r = (r + m) * 255
     self.g = (g + m) * 255
     self.b = (b + m) * 255
 
     self:ClearCache()
-    self._cache.hue = hue
+
+    self._cache.hue         = hue
+    self._cache.saturation  = saturation
+    self._cache.lightness   = lightness
+end
+
+--
+-- Descrption: Modifies RGB components to match hue and caches resulting hue
+-- Arguments:
+--      number: hue (does not need to be within 0-360 degree range)
+--
+function Color:SetHue(hue)
+    if (not self._cache or not self._cache.saturation) then
+        self:GetSaturation()
+    end
+    if (not self._cache or not self._cache.lightness) then
+        self:GetLightness()
+    end
+    self:SetHsl(hue, self._cache.saturation, self._cache.lightness)
+end
+
+--
+-- Descrption: Modifies RGB components to match saturation and caches resulting saturation
+-- Arguments:
+--      number: scaled saturation
+--
+function Color:SetSaturation(saturation)
+    if (not self._cache or not self._cache.hue) then
+        self:GetHue()
+    end
+    if (not self._cache or not self._cache.lightness) then
+        self:GetLightness()
+    end
+    self:SetHsl(self._cache.hue, saturation, self._cache.lightness)
+end
+
+--
+-- Descrption: Modifies RGB components to match lightness and caches resulting lightness
+-- Arguments:
+--      number: scaled lightness
+--
+function Color:SetLightness(lightness)
+    if (not self._cache.saturation) then
+        self:GetSaturation()
+    end
+    if (not self._cache.lightness) then
+        self:GetLightness()
+    end
+    self:SetHsl(self._cache.hue, self._cache.saturation, lightness)
 end
 
 --
@@ -370,7 +403,7 @@ end
 --
 -- Descrption: Prints color information to console
 --
-function Color:GetColorInformation()
+function Color:PrintColorInformation()
     debug.Print("Color information")
     MsgC(Color(255, 255, 255), debug.Timestamp())
     MsgC(self, "██: "..tostring(self).."\n")
