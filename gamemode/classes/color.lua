@@ -292,6 +292,7 @@ end
 --      number: hue (does not need to be within 0-360 degree range)
 --      number: saturation (scaled from 0-1)
 --      number: lightness (scaled from 0-1)
+--
 function Color:SetHsl(hue, saturation, lightness)
     while (hue > 360) do
         hue = hue - 360
