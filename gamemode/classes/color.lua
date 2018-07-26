@@ -240,8 +240,82 @@ function Color:GetLuminance()
     return self._cache.luminance
 end
 
+function Color:SetHue(hue)
+    print(hue)
+
+    while (hue > 360) do
+        hue = hue - 360
+    end
+
+    while (hue < 0) do
+        hue = hue + 360
+    end
+
+    print(hue)
+
+    if (not self._cache.saturation) then
+        self:GetSaturation()
+    end
+    if (not self._cache.chroma) then
+        self:GetChroma()
+    end
+    if (not self._cache.lightness) then
+        self:GetLightness()
+    end
+
+    local s = self._cache.saturation
+    local c = self._cache.chroma
+    local l = self._cache.lightness
+
+    if (s == 0) then return end
+
+    local x = c * (1 - math.abs((hue / 60) % 2 - 1))
+    local r, g, b
+
+    if (hue >= 0 and hue <= 60) then
+        r = c
+        g = x
+        b = 0
+    elseif (hue > 60 and hue <= 120) then
+        r = c
+        g = x
+        b = 0
+    elseif (hue > 120 and hue <= 180) then
+        r = 0
+        g = c
+        b = x
+    elseif (hue > 180 and hue <= 240) then
+        r = 0
+        g = x
+        b = c
+    elseif (hue > 240 and hue <= 300) then
+        r = x
+        g = 0
+        b = c
+    elseif (hue > 300 and hue <= 360) then
+        r = c
+        g = 0
+        b = x
+    end
+
+    local m = l - (.5 * c)
+    self.r = (r + m) * 255
+    self.g = (g + m) * 255
+    self.b = (b + m) * 255
+
+    self:ClearCache()
+end
+
+function Color:RotateHue(hue)
+    if (not self._cache.hue) then
+        self:GetHue()
+    end
+    self:SetHue(self._cache.hue + hue)
+end
+
 function Color:GetColorInformation()
     debug.Print("Color information")
+    MsgC(Color(255, 255, 255), debug.Timestamp())
     MsgC(self, "██: "..tostring(self).."\n")
     debug.Print("Red Channel  ", self.r)
     debug.Print("Green Channel", self.g)

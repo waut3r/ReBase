@@ -11,8 +11,3 @@ glua.IncludeFiles(
 )
 
 debug.Print("ReBase has fully loaded")
-
-if (CLIENT) then
-    local testColor = Color("#FA7014")
-    testColor:GetColorInformation()
-end
