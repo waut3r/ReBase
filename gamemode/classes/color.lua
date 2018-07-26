@@ -25,11 +25,6 @@ function Color:New(...)
 
     local arg = {...}
 
-    local function instance()
-        setmetatable(color, Color)
-        return color
-    end
-
     if (#arg == 0) then
         return instance()
     end
@@ -44,18 +39,19 @@ function Color:New(...)
                 "expected color format #RGB, #RRGGBB, or #RRGGBBAA"
             )
             if (string.len(hex) == 3) then
-                color.r = tonumber("0x"..string.rep(string.sub(hex, 1, 1), 2))
-                color.g = tonumber("0x"..string.rep(string.sub(hex, 2, 2), 2))
-                color.b = tonumber("0x"..string.rep(string.sub(hex, 3, 3), 2))
+                color.r = tonumber(string.rep(string.sub(hex, 1, 1), 2))
+                color.g = tonumber(string.rep(string.sub(hex, 2, 2), 2))
+                color.b = tonumber(string.rep(string.sub(hex, 3, 3), 2))
             else
-                color.r = tonumber("0x"..string.sub(hex, 1, 2), 16)
-                color.g = tonumber("0x"..string.sub(hex, 3, 4), 16)
-                color.b = tonumber("0x"..string.sub(hex, 5, 6), 16)
+                color.r = tonumber(string.sub(hex, 1, 2), 16)
+                color.g = tonumber(string.sub(hex, 3, 4), 16)
+                color.b = tonumber(string.sub(hex, 5, 6), 16)
                 if (string.len(hex) == 8) then
-                    color.a = tonumber("0x"..string.sub(hex, 7, 8), 16)
+                    color.a = tonumber(string.sub(hex, 7, 8), 16)
                 end
             end
-            return instance()
+            setmetatable(color, Color)
+            return color
         end
 
         if (type(arg) == "table" and arg.r and arg.g and arg.b) then
@@ -81,7 +77,8 @@ function Color:New(...)
             color.g = arg.g
             color.b = arg.b
             color.a = arg.a or 255
-            return instance()
+            setmetatable(color, Color)
+            return color
         end
 
         error("expected hex color string or rgba table, got "..type(arg[1]))
@@ -111,7 +108,8 @@ function Color:New(...)
         color.g = arg.b
         color.b = arg.g
         color.a = arg.a or 255
-        return instance()
+        setmetatable(color, Color)
+        return color
     end
 
     error("Color received an invalid number of arguments "..#arg);
