@@ -6,6 +6,14 @@ Color = {}
 Color.__type = "Color"
 Color.__index = Color
 
+--
+-- Description: Creates color instance
+-- Arguments:
+--      varargs: ... -  Can be a string representing #RGB/#RGBA/#RRGGBB/#RRGGBBAA format,
+--                      a table with rgba keys, or RGBA arguments.
+-- Returns:
+--      Color: color
+--
 function Color:New(...)
     local color = {
         r = 255,
@@ -147,6 +155,11 @@ function Color.__div(left, right)
     )
 end
 
+--
+-- Description: Calculates, caches, and returns RGB values scaled from 0-1
+-- Returns:
+--      table: scaled rgb table
+--
 function Color:GetScales()
     self._cache.scales = {}
     self._cache.scales.r = self.r / 255
@@ -155,6 +168,11 @@ function Color:GetScales()
     return self._cache.scales
 end
 
+--
+-- Description: Finds and caches smallest and largest scaled value among rgb components
+-- Returns:
+--      numbers: scaled min and max
+--
 function Color:GetMinMax()
     if (not self._cache.scales) then
         Color:GetScales()
@@ -164,6 +182,11 @@ function Color:GetMinMax()
     return self._cache.min, self._cache.max
 end
 
+--
+-- Description: Calculates and caches chroma (max - min)
+-- Returns:
+--      number: scaled chroma
+--
 function Color:GetChroma()
     if (not self._cache.min or not self._cache.max) then
         self:GetMinMax()
@@ -172,6 +195,11 @@ function Color:GetChroma()
     return self._cache.chroma
 end
 
+--
+-- Description: Calculates and caches hue
+-- Returns:
+--      number: hue in degrees
+--
 function Color:GetHue()
     if (not self._cache.max) then
         self:GetMinMax()
@@ -201,6 +229,11 @@ function Color:GetHue()
     return self._cache.hue
 end
 
+--
+-- Descrption: Calculates and caches saturation
+-- Returns:
+--      number: scaled saturation
+--
 function Color:GetSaturation()
     if (not self._cache.chroma) then
         self:GetChroma()
@@ -221,6 +254,11 @@ function Color:GetSaturation()
     return self._cache.saturation
 end
 
+--
+-- Descrption: Calculates and caches lightness
+-- Returns:
+--      number: scaled lightness
+--
 function Color:GetLightness()
     if (not self._cache.max or not self._cache.min) then
         self:GetMinMax()
@@ -229,6 +267,11 @@ function Color:GetLightness()
     return self._cache.lightness
 end
 
+--
+-- Descrption: Calculates and caches approximate luminance
+-- Returns:
+--      number: scaled luminance
+--
 function Color:GetLuminance()
     if (not self._cache.scales) then
         self:GetScales()
@@ -240,6 +283,11 @@ function Color:GetLuminance()
     return self._cache.luminance
 end
 
+--
+-- Descrption: Modifies RGB components to match hue and caches resulting hue
+-- Arguments:
+--      number: hue (does not need to be within 0-360 degree range)
+--
 function Color:SetHue(hue)
     print(hue)
 
@@ -304,8 +352,14 @@ function Color:SetHue(hue)
     self.b = (b + m) * 255
 
     self:ClearCache()
+    self._cache.hue = hue
 end
 
+--
+-- Descrption: Modifies RGB components to match added hue and caches resulting hue
+-- Arguments:
+--      number: hue (does not need to be within 0-360 degree range)
+--
 function Color:RotateHue(hue)
     if (not self._cache.hue) then
         self:GetHue()
@@ -313,6 +367,9 @@ function Color:RotateHue(hue)
     self:SetHue(self._cache.hue + hue)
 end
 
+--
+-- Descrption: Prints color information to console
+--
 function Color:GetColorInformation()
     debug.Print("Color information")
     MsgC(Color(255, 255, 255), debug.Timestamp())
@@ -346,6 +403,9 @@ function Color:GetColorInformation()
     debug.Print("Luminance    ", luminance)
 end
 
+--
+-- Descrption: Sets _cache table to empty table
+--
 function Color:ClearCache()
     self._cache = {}
 end
